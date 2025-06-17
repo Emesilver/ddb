@@ -5,27 +5,18 @@ import {
   QueryCommandInput,
   QueryCommandOutput,
 } from '@aws-sdk/client-dynamodb';
-import { DDBItemsChunk, QueryOptions } from './ddb-raw.type';
-//import { DDBItemsChunk, showMessageError } from '../../utils';
+import { DDBItemsChunk, KeysInfo, QueryOptions } from './ddb-raw.type';
 
 /**
  * Returns all items of a queryOptions (not only the DynamoDB first page)
  */
-export async function queryDDBRaw(
+export async function queryDDBRawItems(
   ddbClient: DynamoDBClient,
   tableName: string,
-  pkName: string,
-  skName: string,
-  pkValue: string,
+  keysInfo: KeysInfo,
   queryOptions?: QueryOptions
 ): Promise<Record<string, AttributeValue>[]> {
-  const params = buildQueryParams(
-    tableName,
-    pkName,
-    skName,
-    pkValue,
-    queryOptions
-  );
+  const params = buildQueryParams(tableName, keysInfo, queryOptions);
   try {
     let queryResult: QueryCommandOutput | undefined = undefined;
     let allItems: Record<string, AttributeValue>[] = [];
@@ -51,19 +42,11 @@ export async function queryDDBRaw(
 export async function queryDDBRawChunk(
   ddbClient: DynamoDBClient,
   tableName: string,
-  pkName: string,
-  skName: string,
-  pkValue: string,
+  keysInfo: KeysInfo,
   exclusiveStartKey: Record<string, AttributeValue> | undefined,
   queryOptions?: QueryOptions
 ): Promise<DDBItemsChunk<Record<string, AttributeValue>>> {
-  const params = buildQueryParams(
-    tableName,
-    pkName,
-    skName,
-    pkValue,
-    queryOptions
-  );
+  const params = buildQueryParams(tableName, keysInfo, queryOptions);
   params.ExclusiveStartKey = exclusiveStartKey;
   try {
     const queryResult = await ddbClient.send(new QueryCommand(params));
@@ -79,22 +62,20 @@ export async function queryDDBRawChunk(
 
 export function buildQueryParams(
   tableName: string,
-  pkName: string,
-  skName: string,
-  pkValue: string,
+  keysInfo: KeysInfo,
   queryOptions?: QueryOptions
 ) {
   const pkFieldName = queryOptions?.indexInfo
     ? queryOptions.indexInfo.pkName
-    : pkName;
+    : keysInfo.pkName;
   const skFieldName = queryOptions?.indexInfo
     ? queryOptions.indexInfo.skName
-    : skName;
+    : keysInfo.skName;
   const {
     keysCondition,
     expAttrValues,
   }: { keysCondition: string; expAttrValues: Record<string, AttributeValue> } =
-    buildKeyCondition(pkFieldName, pkValue, skFieldName, queryOptions);
+    buildKeyCondition(pkFieldName, keysInfo.pkValue, skFieldName, queryOptions);
   const params: QueryCommandInput = {
     TableName: tableName,
     KeyConditionExpression: keysCondition,

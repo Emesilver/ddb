@@ -1,6 +1,6 @@
 import { AttributeValue } from '@aws-sdk/client-dynamodb';
 
-export type SKFilter2 = {
+export type SKFilter = {
   sk?: string;
   skBeginsWith?: string;
   skBetween?: {
@@ -18,8 +18,13 @@ export type FieldsFilter = {
   filterValues?: Record<string, string>;
 };
 
+export type KeysInfo = {
+  pkName: string;
+  skName: string;
+  pkValue: string;
+};
 export type QueryOptions = {
-  skFilter?: SKFilter2;
+  skFilter?: SKFilter;
   fieldsFilter?: FieldsFilter;
   indexInfo?: TableIndexInfo;
   scanForward?: boolean;

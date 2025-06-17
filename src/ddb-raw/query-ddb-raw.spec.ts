@@ -1,7 +1,12 @@
-import { TableIndexInfo, TableInfo } from '../../utils';
-import { QueryOptions, SKFilter2 } from './ddb-raw.type';
-import { buildQueryParams } from './query-ddb-raw';
 import { QueryCommandInput } from '@aws-sdk/client-dynamodb';
+//import {  TableInfo } from '../../utils';
+import {
+  KeysInfo,
+  QueryOptions,
+  SKFilter,
+  TableIndexInfo,
+} from './ddb-raw.type';
+import { buildQueryParams } from './query-ddb-raw';
 
 describe('query-ddb-raw', () => {
   const TABLE_TEST_INDEX: TableIndexInfo = {
@@ -9,28 +14,33 @@ describe('query-ddb-raw', () => {
     pkName: 'indexPk',
     skName: 'indexSk',
   };
-  const TABLE_TEST: TableInfo = {
-    tableName: 'TEST-TABLE',
-    partitionKeyName: 'pk',
-    encryptTable: true,
-    numberAsStrFields: [],
-    noEncryptFields: [],
-    sortKeyName: 'sk',
-    //    indexNames: [TABLE_TEST_INDEX],
-  };
+  // const TABLE_TEST: TableInfo = {
+  //   tableName: 'TEST-TABLE',
+  //   partitionKeyName: 'pk',
+  //   encryptTable: true,
+  //   numberAsStrFields: [],
+  //   noEncryptFields: [],
+  //   sortKeyName: 'sk',
+  // };
+  const tableName = 'TEST-TABLE';
   const basicExpectedResult: QueryCommandInput = {
-    TableName: TABLE_TEST.tableName,
+    TableName: tableName,
     KeyConditionExpression: 'pk = :pk',
     ExpressionAttributeValues: { ':pk': { S: 'pkValue' } },
   };
+  const keysInfo: KeysInfo = {
+    pkName: 'pk',
+    skName: 'sk',
+    pkValue: 'pkValue',
+  };
   describe('buildQueryParams', () => {
     it('should build simple query pk only', () => {
-      const ret = buildQueryParams(TABLE_TEST, 'pkValue');
+      const ret = buildQueryParams(tableName, keysInfo);
       expect(ret).toStrictEqual(basicExpectedResult);
     });
 
     it('should build simple query with sk', () => {
-      const skFilter: SKFilter2 = {
+      const skFilter: SKFilter = {
         sk: 'skValue',
       };
       const expectedResult: QueryCommandInput = {
@@ -38,15 +48,15 @@ describe('query-ddb-raw', () => {
         KeyConditionExpression: 'pk = :pk AND sk = :sk',
         ExpressionAttributeValues: {
           ...basicExpectedResult.ExpressionAttributeValues,
-          ':sk': { S: skFilter.sk },
+          ':sk': { S: skFilter.sk! },
         },
       };
-      const ret = buildQueryParams(TABLE_TEST, 'pkValue', { skFilter });
+      const ret = buildQueryParams(tableName, keysInfo, { skFilter });
       expect(ret).toStrictEqual(expectedResult);
     });
 
     it('should build simple query with sk BEGINS_WITH', () => {
-      const skFilter: SKFilter2 = {
+      const skFilter: SKFilter = {
         skBeginsWith: 'sk begins with ...',
       };
       const expectedResult: QueryCommandInput = {
@@ -54,15 +64,15 @@ describe('query-ddb-raw', () => {
         KeyConditionExpression: 'pk = :pk AND begins_with(sk, :skBW)',
         ExpressionAttributeValues: {
           ...basicExpectedResult.ExpressionAttributeValues,
-          ':skBW': { S: skFilter.skBeginsWith },
+          ':skBW': { S: skFilter.skBeginsWith! },
         },
       };
-      const ret = buildQueryParams(TABLE_TEST, 'pkValue', { skFilter });
+      const ret = buildQueryParams(tableName, keysInfo, { skFilter });
       expect(ret).toStrictEqual(expectedResult);
     });
 
     it('should build simple query with sk BETWEEN', () => {
-      const skFilter: SKFilter2 = {
+      const skFilter: SKFilter = {
         skBetween: { start: 'skStart', end: 'skEnd' },
       };
       const expectedResult: QueryCommandInput = {
@@ -70,16 +80,16 @@ describe('query-ddb-raw', () => {
         KeyConditionExpression: 'pk = :pk AND sk BETWEEN :skStart AND :skEnd',
         ExpressionAttributeValues: {
           ...basicExpectedResult.ExpressionAttributeValues,
-          ':skStart': { S: skFilter.skBetween.start },
-          ':skEnd': { S: skFilter.skBetween.end },
+          ':skStart': { S: skFilter.skBetween!.start },
+          ':skEnd': { S: skFilter.skBetween!.end },
         },
       };
-      const ret = buildQueryParams(TABLE_TEST, 'pkValue', { skFilter });
+      const ret = buildQueryParams(tableName, keysInfo, { skFilter });
       expect(ret).toStrictEqual(expectedResult);
     });
 
     it('should build simple query in a index', () => {
-      const skFilter: SKFilter2 = {
+      const skFilter: SKFilter = {
         sk: 'skIndexValue',
       };
       const expectedResult: QueryCommandInput = {
@@ -96,12 +106,12 @@ describe('query-ddb-raw', () => {
         skFilter,
         indexInfo: TABLE_TEST_INDEX,
       };
-      const ret = buildQueryParams(TABLE_TEST, 'pkIndexValue', queryOptions);
+      const ret = buildQueryParams(tableName, keysInfo, queryOptions);
       expect(ret).toStrictEqual(expectedResult);
     });
 
     it('should build simple query with scan backward', () => {
-      const skFilter: SKFilter2 = {
+      const skFilter: SKFilter = {
         sk: 'skValue',
       };
       const queryOptions: QueryOptions = {
@@ -113,16 +123,16 @@ describe('query-ddb-raw', () => {
         KeyConditionExpression: 'pk = :pk AND sk = :sk',
         ExpressionAttributeValues: {
           ...basicExpectedResult.ExpressionAttributeValues,
-          ':sk': { S: skFilter.sk },
+          ':sk': { S: skFilter.sk! },
         },
         ScanIndexForward: false,
       };
-      const ret = buildQueryParams(TABLE_TEST, 'pkValue', queryOptions);
+      const ret = buildQueryParams(tableName, keysInfo, queryOptions);
       expect(ret).toStrictEqual(expectedResult);
     });
 
     it('should build simple query with limit', () => {
-      const skFilter: SKFilter2 = {
+      const skFilter: SKFilter = {
         sk: 'skValue',
       };
       const queryOptions: QueryOptions = {
@@ -134,16 +144,16 @@ describe('query-ddb-raw', () => {
         KeyConditionExpression: 'pk = :pk AND sk = :sk',
         ExpressionAttributeValues: {
           ...basicExpectedResult.ExpressionAttributeValues,
-          ':sk': { S: skFilter.sk },
+          ':sk': { S: skFilter.sk! },
         },
         Limit: 12,
       };
-      const ret = buildQueryParams(TABLE_TEST, 'pkValue', queryOptions);
+      const ret = buildQueryParams(tableName, keysInfo, queryOptions);
       expect(ret).toStrictEqual(expectedResult);
     });
 
     it('should build simple query with field projection', () => {
-      const skFilter: SKFilter2 = {
+      const skFilter: SKFilter = {
         sk: 'skValue',
       };
       const queryOptions: QueryOptions = {
@@ -155,16 +165,16 @@ describe('query-ddb-raw', () => {
         KeyConditionExpression: 'pk = :pk AND sk = :sk',
         ExpressionAttributeValues: {
           ...basicExpectedResult.ExpressionAttributeValues,
-          ':sk': { S: skFilter.sk },
+          ':sk': { S: skFilter.sk! },
         },
-        ProjectionExpression: queryOptions.fieldList.join(','),
+        ProjectionExpression: queryOptions.fieldList!.join(','),
       };
-      const ret = buildQueryParams(TABLE_TEST, 'pkValue', queryOptions);
+      const ret = buildQueryParams(tableName, keysInfo, queryOptions);
       expect(ret).toStrictEqual(expectedResult);
     });
 
     it('should build simple query with filter in a field other than keys', () => {
-      const skFilter: SKFilter2 = {
+      const skFilter: SKFilter = {
         sk: 'skValue',
       };
       const queryOptions: QueryOptions = {
@@ -177,19 +187,19 @@ describe('query-ddb-raw', () => {
       const expectedResult: QueryCommandInput = {
         ...basicExpectedResult,
         KeyConditionExpression: 'pk = :pk AND sk = :sk',
-        FilterExpression: queryOptions.fieldsFilter.filterExpression,
+        FilterExpression: queryOptions.fieldsFilter!.filterExpression,
         ExpressionAttributeValues: {
           ...basicExpectedResult.ExpressionAttributeValues,
-          ':sk': { S: skFilter.sk },
+          ':sk': { S: skFilter.sk! },
           ':field1': { S: 'content 1 to filter' },
         },
       };
-      const ret = buildQueryParams(TABLE_TEST, 'pkValue', queryOptions);
+      const ret = buildQueryParams(tableName, keysInfo, queryOptions);
       expect(ret).toStrictEqual(expectedResult);
     });
 
     it('should build simple query with filter in fields other than keys', () => {
-      const skFilter: SKFilter2 = {
+      const skFilter: SKFilter = {
         sk: 'skValue',
       };
       const queryOptions: QueryOptions = {
@@ -205,15 +215,15 @@ describe('query-ddb-raw', () => {
       const expectedResult: QueryCommandInput = {
         ...basicExpectedResult,
         KeyConditionExpression: 'pk = :pk AND sk = :sk',
-        FilterExpression: queryOptions.fieldsFilter.filterExpression,
+        FilterExpression: queryOptions.fieldsFilter!.filterExpression,
         ExpressionAttributeValues: {
           ...basicExpectedResult.ExpressionAttributeValues,
-          ':sk': { S: skFilter.sk },
+          ':sk': { S: skFilter.sk! },
           ':field1': { S: 'content 1 to filter' },
           ':field2': { S: 'content 2 to filter' },
         },
       };
-      const ret = buildQueryParams(TABLE_TEST, 'pkValue', queryOptions);
+      const ret = buildQueryParams(tableName, keysInfo, queryOptions);
       expect(ret).toStrictEqual(expectedResult);
     });
 
@@ -233,7 +243,7 @@ describe('query-ddb-raw', () => {
           ':skBW': { S: 'BEGIN-' },
         },
       };
-      const ret = buildQueryParams(TABLE_TEST, 'pkValue', queryOptions);
+      const ret = buildQueryParams(tableName, keysInfo, queryOptions);
       expect(ret).toStrictEqual(expectedResult);
     });
   });
