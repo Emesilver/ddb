@@ -1,27 +1,18 @@
 import { QueryCommandInput } from '@aws-sdk/client-dynamodb';
-//import {  TableInfo } from '../../utils';
 import {
   KeysInfo,
   QueryOptions,
   SKFilter,
   TableIndexInfo,
 } from './ddb-raw.type';
-import { buildQueryParams } from './query-ddb-raw';
+import { buildQueryParams } from './query-ddb-raw-items';
 
-describe('query-ddb-raw', () => {
+describe('query-ddb-raw-items', () => {
   const TABLE_TEST_INDEX: TableIndexInfo = {
     name: 'indexName',
     pkName: 'indexPk',
     skName: 'indexSk',
   };
-  // const TABLE_TEST: TableInfo = {
-  //   tableName: 'TEST-TABLE',
-  //   partitionKeyName: 'pk',
-  //   encryptTable: true,
-  //   numberAsStrFields: [],
-  //   noEncryptFields: [],
-  //   sortKeyName: 'sk',
-  // };
   const tableName = 'TEST-TABLE';
   const basicExpectedResult: QueryCommandInput = {
     TableName: tableName,
@@ -89,6 +80,11 @@ describe('query-ddb-raw', () => {
     });
 
     it('should build simple query in a index', () => {
+      const keysIndexInfo: KeysInfo = {
+        pkName: TABLE_TEST_INDEX.pkName,
+        skName: TABLE_TEST_INDEX.skName,
+        pkValue: 'pkIndexValue',
+      };
       const skFilter: SKFilter = {
         sk: 'skIndexValue',
       };
@@ -106,7 +102,7 @@ describe('query-ddb-raw', () => {
         skFilter,
         indexInfo: TABLE_TEST_INDEX,
       };
-      const ret = buildQueryParams(tableName, keysInfo, queryOptions);
+      const ret = buildQueryParams(tableName, keysIndexInfo, queryOptions);
       expect(ret).toStrictEqual(expectedResult);
     });
 
