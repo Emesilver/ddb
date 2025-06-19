@@ -1,0 +1,6 @@
+# Login to personal account using a personal access token 
+# (github/settings/developer settings/Personal access toksens/Token classic)
+# use access token as PASSWORD
+npm login --scope=@emesilver --registry=https://npm.pkg.github.com
+
+npm publish

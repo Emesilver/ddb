@@ -40,8 +40,8 @@ function buildRawItem(
   item: Object
 ): Record<string, AttributeValue> {
   const rawItem: Record<string, AttributeValue> = {
-    PK: { S: pk },
-    SK: { S: sk },
+    pk: { S: pk },
+    sk: { S: sk },
     ...marshall(item),
   };
   return rawItem;
