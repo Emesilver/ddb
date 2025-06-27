@@ -3,4 +3,5 @@
 # use access token as PASSWORD
 npm login --scope=@emesilver --registry=https://npm.pkg.github.com
 
+#Update the package version
 npm publish

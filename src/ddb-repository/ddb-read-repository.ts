@@ -17,8 +17,7 @@ export class DDBReadRepository {
       sk: { S: sk },
     };
     const rawItem = await getDDBRawItem(this.ddbClient, this.tableName, key);
-    const retObj = unmarshall(rawItem) as T;
-    return retObj;
+    return rawItem ? (unmarshall(rawItem) as T) : null;
   }
 
   public async queryDDBItems<T>(pk: string, queryOptions?: QueryOptions) {
