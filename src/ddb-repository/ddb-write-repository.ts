@@ -1,8 +1,9 @@
 import { DynamoDBClient, AttributeValue } from '@aws-sdk/client-dynamodb';
-import { marshall } from '@aws-sdk/util-dynamodb';
+import { marshall, unmarshall } from '@aws-sdk/util-dynamodb';
 import { putDDBRawItem } from '../ddb-raw/put-ddb-raw-item';
 import { buildSETUpdateExpression, objToPrefixedDDB } from '../ddb-utils';
 import { updateDDBRawItem } from '../ddb-raw/update-ddb-raw-item';
+import { updatedNewDDBRawItem } from '../ddb-raw/updatednew-ddb-raw-item';
 
 export class DDBWriteRepository {
   private tableName: string;
@@ -31,6 +32,33 @@ export class DDBWriteRepository {
       updateExp,
       updateExpValues
     );
+  }
+
+  /**
+   * Increment a number field in atomic way.
+   * @param pk Partition key
+   * @param sk Sort key
+   * @param fieldName Field name to increment
+   * @returns Incremented item of type T
+   */
+  public async incrementedNumber<T>(pk: string, sk: string, fieldName: string) {
+    const key: Record<string, AttributeValue> = {
+      pk: { S: pk },
+      sk: { S: sk },
+    };
+    const updateExp = `SET ${fieldName} = if_not_exists(${fieldName}, :zero) + :inc`;
+    const expAttValues: Record<string, AttributeValue> = {
+      ':zero': { N: '0' },
+      ':inc': { N: '1' },
+    };
+    const rawItem = await updatedNewDDBRawItem(
+      this.ddbClient,
+      this.tableName,
+      key,
+      updateExp,
+      expAttValues
+    );
+    return rawItem ? (unmarshall(rawItem) as T) : null;
   }
 }
 

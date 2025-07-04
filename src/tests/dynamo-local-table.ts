@@ -68,7 +68,9 @@ export async function deleteLocalTable(tableName: string) {
   }
 }
 
-function getGSIs(indexes: TableIndexInfo[]): GlobalSecondaryIndex[] {
+function getGSIs(
+  indexes: TableIndexInfo[]
+): GlobalSecondaryIndex[] | undefined {
   const gsis = indexes.map((index) => {
     const pkSchema: KeySchemaElement = {
       AttributeName: index.pkName,
@@ -108,7 +110,7 @@ function getAttributes(
   return attributes;
 }
 
-function getDynamoLocalConfig() {
+export function getDynamoLocalConfig() {
   const dynamoOptionsLocal: DynamoDBClientConfig = {
     region: 'localhost',
     endpoint: 'http://localhost:8000',
