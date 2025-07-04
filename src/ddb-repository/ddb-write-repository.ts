@@ -70,7 +70,7 @@ function buildRawItem(
   const rawItem: Record<string, AttributeValue> = {
     pk: { S: pk },
     sk: { S: sk },
-    ...marshall(item),
+    ...marshall(item, { removeUndefinedValues: true }),
   };
   return rawItem;
 }

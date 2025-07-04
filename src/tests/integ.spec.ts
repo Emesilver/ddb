@@ -2,7 +2,7 @@ import {
   createLocalTable,
   deleteLocalTable,
   getDynamoLocalConfig,
-} from './dynamo-local-table';
+} from '../ddb-tests/dynamo-local-table';
 import { DDBWriteRepository } from '../ddb-repository/ddb-write-repository';
 import { DynamoDB } from '@aws-sdk/client-dynamodb';
 

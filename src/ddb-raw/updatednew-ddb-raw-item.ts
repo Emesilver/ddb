@@ -32,6 +32,6 @@ export async function updatedNewDDBRawItem(
     const result = await ddbClient.send(new UpdateItemCommand(params));
     return result.Attributes;
   } catch (error) {
-    console.log('updatednewDDBRawItem failed:', error.message);
+    console.log('updatedNewDDBRawItem failed:', error.message);
   }
 }
