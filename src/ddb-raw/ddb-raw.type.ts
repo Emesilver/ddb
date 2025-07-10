@@ -45,6 +45,8 @@ export type ScanFilter = {
 export type ScanOptions = {
   indexName?: string;
   scanFilter?: ScanFilter;
+  limit?: number;
+  exclusiveStartKey?: Record<string, AttributeValue>;
 };
 
 export type DDBItemsChunk<T> = {
