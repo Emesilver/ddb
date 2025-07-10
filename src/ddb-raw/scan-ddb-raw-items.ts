@@ -15,8 +15,9 @@ export async function scanDDBRawItems(
   const params: ScanCommandInput = {
     TableName: tableName,
   };
-  if (scanOptions.limit) params.Limit = scanOptions.limit;
-  if (scanOptions.exclusiveStartKey)
+  if (scanOptions?.indexName) params.IndexName = scanOptions.indexName;
+  if (scanOptions?.limit) params.Limit = scanOptions.limit;
+  if (scanOptions?.exclusiveStartKey)
     params.ExclusiveStartKey = scanOptions.exclusiveStartKey;
   if (scanOptions?.scanFilter) {
     params.FilterExpression = scanOptions.scanFilter.filterExpression;
