@@ -38,6 +38,15 @@ export type GetOptions = {
   consistentRead?: boolean;
 };
 
+export type ScanFilter = {
+  filterExpression: string;
+  expressionAttributeValues: Record<string, AttributeValue>;
+};
+export type ScanOptions = {
+  indexName?: string;
+  scanFilter?: ScanFilter;
+};
+
 export type DDBItemsChunk<T> = {
   lastEvaluatedKey?: Record<string, AttributeValue>;
   items: T[] | undefined;

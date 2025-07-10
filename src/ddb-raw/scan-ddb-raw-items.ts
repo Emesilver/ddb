@@ -5,15 +5,8 @@ import {
   ScanCommand,
   ScanCommandOutput,
 } from '@aws-sdk/client-dynamodb';
+import { ScanOptions } from './ddb-raw.type';
 
-export type ScanFilter = {
-  filterExpression: string;
-  expressionAttributeValues: Record<string, AttributeValue>;
-};
-export type ScanOptions = {
-  indexName?: string;
-  scanFilter?: ScanFilter;
-};
 export async function scanDDBRawItems(
   ddbClient: DynamoDBClient,
   tableName: string,

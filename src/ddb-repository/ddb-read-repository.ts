@@ -1,8 +1,9 @@
 import { DynamoDBClient, AttributeValue } from '@aws-sdk/client-dynamodb';
 import { unmarshall } from '@aws-sdk/util-dynamodb';
 import { getDDBRawItem } from '../ddb-raw/get-ddb-raw-item';
-import { KeysInfo, QueryOptions } from '../ddb-raw';
+import { KeysInfo, QueryOptions, ScanOptions } from '../ddb-raw';
 import { queryDDBRawItems } from '../ddb-raw/query-ddb-raw-items';
+import { scanDDBRawItems } from '../ddb-raw/scan-ddb-raw-items';
 
 export class DDBReadRepository {
   private tableName: string;
@@ -31,6 +32,16 @@ export class DDBReadRepository {
       this.tableName,
       keysInfo,
       queryOptions
+    );
+    const retObjs = rawItems.map((rawItem) => unmarshall(rawItem)) as T[];
+    return retObjs;
+  }
+
+  public async scanDDBItems<T>(scanOptions?: ScanOptions) {
+    const rawItems = await scanDDBRawItems(
+      this.ddbClient,
+      this.tableName,
+      scanOptions
     );
     const retObjs = rawItems.map((rawItem) => unmarshall(rawItem)) as T[];
     return retObjs;
