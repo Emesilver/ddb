@@ -56,8 +56,6 @@ function buildScanParams(tableName: string, scanOptions: ScanOptions) {
   };
   if (scanOptions?.indexName) params.IndexName = scanOptions.indexName;
   if (scanOptions?.limit) params.Limit = scanOptions.limit;
-  if (scanOptions?.exclusiveStartKey)
-    params.ExclusiveStartKey = scanOptions.exclusiveStartKey;
   if (scanOptions?.scanFilter) {
     params.FilterExpression = scanOptions.scanFilter.filterExpression;
     params.ExpressionAttributeValues =
