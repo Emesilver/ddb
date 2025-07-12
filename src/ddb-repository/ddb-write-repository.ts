@@ -1,7 +1,11 @@
 import { DynamoDBClient, AttributeValue } from '@aws-sdk/client-dynamodb';
 import { marshall, unmarshall } from '@aws-sdk/util-dynamodb';
 import { putDDBRawItem } from '../ddb-raw/put-ddb-raw-item';
-import { buildSETUpdateExpression, objToPrefixedDDB } from '../ddb-utils';
+import {
+  buildREMOVEUpdateExpression,
+  buildSETUpdateExpression,
+  objToPrefixedDDB,
+} from '../ddb-utils';
 import { updateDDBRawItem } from '../ddb-raw/update-ddb-raw-item';
 import { updatedNewDDBRawItem } from '../ddb-raw/updatednew-ddb-raw-item';
 
@@ -18,12 +22,20 @@ export class DDBWriteRepository {
     await putDDBRawItem(this.ddbClient, this.tableName, rawItem);
   }
 
-  public async upsertDDBItem(pk: string, sk: string, item: Object) {
+  public async upsertDDBItem(
+    pk: string,
+    sk: string,
+    item: Object,
+    removeItems?: string[]
+  ) {
     const key: Record<string, AttributeValue> = {
       pk: { S: pk },
       sk: { S: sk },
     };
     let updateExp = buildSETUpdateExpression(item);
+    if (removeItems && removeItems.length > 0) {
+      updateExp += ' ' + buildREMOVEUpdateExpression(removeItems);
+    }
     const updateExpValues = objToPrefixedDDB(item, ':');
     await updateDDBRawItem(
       this.ddbClient,
