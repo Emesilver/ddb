@@ -11,7 +11,7 @@ import { DDBItemsChunk } from './ddb-read-repository.type';
 import {
   lastEvaluatedKeyObjToStr,
   lastEvaluatedKeyStrToObj,
-} from 'src/ddb-utils';
+} from '../ddb-utils';
 
 export class DDBReadRepository {
   private tableName: string;
