@@ -49,9 +49,9 @@ export type ScanOptions = {
   exclusiveStartKey?: Record<string, AttributeValue>;
 };
 
-export type DDBItemsChunk<T> = {
+export type DDBItemsRawChunk = {
   lastEvaluatedKey?: Record<string, AttributeValue>;
-  items: T[] | undefined;
+  items: Record<string, AttributeValue>[] | undefined;
 };
 
 export type TableIndexInfo = {

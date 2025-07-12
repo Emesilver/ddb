@@ -5,7 +5,7 @@ import {
   QueryCommandInput,
   QueryCommandOutput,
 } from '@aws-sdk/client-dynamodb';
-import { DDBItemsChunk, KeysInfo, QueryOptions } from './ddb-raw.type';
+import { DDBItemsRawChunk, KeysInfo, QueryOptions } from './ddb-raw.type';
 
 /**
  * Returns all items of a queryOptions (not only the DynamoDB first page)
@@ -45,7 +45,7 @@ export async function queryDDBRawChunk(
   keysInfo: KeysInfo,
   exclusiveStartKey: Record<string, AttributeValue> | undefined,
   queryOptions?: QueryOptions
-): Promise<DDBItemsChunk<Record<string, AttributeValue>>> {
+): Promise<DDBItemsRawChunk> {
   const params = buildQueryParams(tableName, keysInfo, queryOptions);
   params.ExclusiveStartKey = exclusiveStartKey;
   try {
@@ -56,7 +56,7 @@ export async function queryDDBRawChunk(
     };
   } catch (error) {
     console.error(error);
-    throw new Error('queryDDBRawItems failed');
+    throw new Error('queryDDBRawChunck failed');
   }
 }
 

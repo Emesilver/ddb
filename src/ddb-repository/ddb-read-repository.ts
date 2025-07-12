@@ -3,7 +3,15 @@ import { unmarshall } from '@aws-sdk/util-dynamodb';
 import { getDDBRawItem } from '../ddb-raw/get-ddb-raw-item';
 import { KeysInfo, QueryOptions, ScanOptions } from '../ddb-raw';
 import { queryDDBRawItems } from '../ddb-raw/query-ddb-raw-items';
-import { scanDDBRawItems } from '../ddb-raw/scan-ddb-raw-items';
+import {
+  scanDDBRawChunk,
+  scanDDBRawItems,
+} from '../ddb-raw/scan-ddb-raw-items';
+import { DDBItemsChunk } from './ddb-read-repository.type';
+import {
+  lastEvaluatedKeyObjToStr,
+  lastEvaluatedKeyStrToObj,
+} from 'src/ddb-utils';
 
 export class DDBReadRepository {
   private tableName: string;
@@ -45,5 +53,24 @@ export class DDBReadRepository {
     );
     const retObjs = rawItems.map((rawItem) => unmarshall(rawItem)) as T[];
     return retObjs;
+  }
+
+  public async scanDDBChunk<T>(
+    nextToken: string | undefined,
+    scanOptions?: ScanOptions
+  ): Promise<DDBItemsChunk<T>> {
+    const rawItemsChunk = await scanDDBRawChunk(
+      this.ddbClient,
+      this.tableName,
+      lastEvaluatedKeyStrToObj(nextToken),
+      scanOptions
+    );
+    const retObjs = rawItemsChunk.items.map((rawItem) =>
+      unmarshall(rawItem)
+    ) as T[];
+    return {
+      items: retObjs,
+      nextToken: lastEvaluatedKeyObjToStr(rawItemsChunk.lastEvaluatedKey),
+    };
   }
 }

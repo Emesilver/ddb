@@ -50,3 +50,19 @@ export function objToPrefixedDDB(obj: object, propertyPrefix?: ':') {
   }
   return marshall(retObject);
 }
+
+import { AttributeValue } from '@aws-sdk/client-dynamodb';
+
+export function lastEvaluatedKeyStrToObj(
+  lastEvaluatedKey: string | undefined
+): Record<string, AttributeValue> {
+  if (!lastEvaluatedKey) return undefined;
+  return JSON.parse(lastEvaluatedKey);
+}
+
+export function lastEvaluatedKeyObjToStr(
+  lastEvaluatedKey: Record<string, AttributeValue>
+): string {
+  if (!lastEvaluatedKey) return '';
+  return JSON.stringify(lastEvaluatedKey);
+}

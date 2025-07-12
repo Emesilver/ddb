@@ -5,13 +5,52 @@ import {
   ScanCommand,
   ScanCommandOutput,
 } from '@aws-sdk/client-dynamodb';
-import { ScanOptions } from './ddb-raw.type';
+import { DDBItemsRawChunk, ScanOptions } from './ddb-raw.type';
 
 export async function scanDDBRawItems(
   ddbClient: DynamoDBClient,
   tableName: string,
   scanOptions?: ScanOptions
 ) {
+  const params = buildScanParams(tableName, scanOptions);
+  try {
+    let scanResult: ScanCommandOutput;
+    let allItems: Record<string, AttributeValue>[] = [];
+    do {
+      params.ExclusiveStartKey = scanResult?.LastEvaluatedKey;
+      scanResult = await ddbClient.send(new ScanCommand(params));
+      allItems = allItems.concat(scanResult.Items);
+    } while (
+      scanResult.LastEvaluatedKey ||
+      (scanOptions?.limit && allItems.length < scanOptions.limit)
+    );
+    return scanOptions?.limit ? allItems.slice(0, scanOptions.limit) : allItems;
+  } catch (error) {
+    throw new Error('scanDDBRawItems failed:' + error.message);
+  }
+}
+
+export async function scanDDBRawChunk(
+  ddbClient: DynamoDBClient,
+  tableName: string,
+  exclusiveStartKey: Record<string, AttributeValue> | undefined,
+  scanOptions?: ScanOptions
+): Promise<DDBItemsRawChunk> {
+  const params = buildScanParams(tableName, scanOptions);
+  params.ExclusiveStartKey = exclusiveStartKey;
+  try {
+    const scanResult = await ddbClient.send(new ScanCommand(params));
+    return {
+      lastEvaluatedKey: scanResult.LastEvaluatedKey,
+      items: scanResult.Items,
+    };
+  } catch (error) {
+    console.error(error);
+    throw new Error('scanDDBRawItems failed');
+  }
+}
+
+function buildScanParams(tableName: string, scanOptions: ScanOptions) {
   const params: ScanCommandInput = {
     TableName: tableName,
   };
@@ -24,16 +63,5 @@ export async function scanDDBRawItems(
     params.ExpressionAttributeValues =
       scanOptions.scanFilter.expressionAttributeValues;
   }
-  try {
-    let scanResult: ScanCommandOutput;
-    let allItems: Record<string, AttributeValue>[] = [];
-    do {
-      params.ExclusiveStartKey = scanResult?.LastEvaluatedKey;
-      scanResult = await ddbClient.send(new ScanCommand(params));
-      allItems = allItems.concat(scanResult.Items);
-    } while (scanResult.LastEvaluatedKey);
-    return allItems;
-  } catch (error) {
-    throw new Error('scanDDBRawItems failed:' + error.message);
-  }
+  return params;
 }
